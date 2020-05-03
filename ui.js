@@ -9,7 +9,6 @@ $(async function () {
   const $navLogin = $("#nav-login");
   const $navLogOut = $("#nav-logout");
   const $navWelcome = $("#nav-welcome");
-  const $mainNavLinks = $("#main-nav-links");
   const $userProfile = $("#user-profile");
 
   // global storyList variable
@@ -17,7 +16,7 @@ $(async function () {
 
   // global currentUser variable
   let currentUser = null;
-
+  $userProfile.hide();
   await checkIfLoggedIn();
 
   /**
@@ -87,9 +86,18 @@ $(async function () {
    */
 
   $("body").on("click", "#nav-all", async function () {
-    hideElements();
+    // hideElements();
     await generateStories();
     $allStoriesList.show();
+  });
+
+  /**
+   * Event handler for click on username
+   */
+
+  $("#nav-user-profile").on("click", function () {
+    $allStoriesList.hide();
+    $userProfile.show();
   });
 
   /**
@@ -163,6 +171,9 @@ $(async function () {
     // render story markup
     const storyMarkup = $(`
       <li id="${story.storyId}">
+        <span class="star">
+          <i class="far fa-star"></i>
+        </span>
         <a class="article-link" href="${story.url}" target="a_blank">
           <strong>${story.title}</strong>
         </a>
@@ -185,6 +196,7 @@ $(async function () {
       $ownStories,
       $loginForm,
       $createAccountForm,
+      // $userProfile,
     ];
     elementsArr.forEach(($elem) => $elem.hide());
   }
@@ -192,7 +204,8 @@ $(async function () {
   function showNavForLoggedInUser() {
     $navLogin.hide();
     $userProfile.hide();
-    $(".main-nav-links #user-profile").toggleClass("hidden");
+    $(".main-nav-links").removeClass("hidden");
+    $("#nav-user-profile").text(currentUser.username);
     $navWelcome.show();
     $navLogOut.show();
   }
