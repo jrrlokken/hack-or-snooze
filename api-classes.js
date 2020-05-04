@@ -170,6 +170,8 @@ class User {
     );
     return existingUser;
   }
+  static async removeFavorite(storyId) {}
+  static async addFavorite(storyId) {}
 }
 
 /**
