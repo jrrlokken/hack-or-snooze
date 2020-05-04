@@ -11,6 +11,7 @@ $(async function () {
   const $navLogin = $("#nav-login");
   const $navLogOut = $("#nav-logout");
   const $navWelcome = $("#nav-welcome");
+  const $navUserProfile = $("#nav-user-profile");
   const $navSubmit = $("#nav-submit");
   const $userProfile = $("#user-profile");
 
@@ -19,7 +20,7 @@ $(async function () {
 
   // global currentUser variable
   let currentUser = null;
-  $userProfile.hide();
+  // $userProfile.hide();
   await checkIfLoggedIn();
 
   $submitForm.on("submit", async function (event) {
@@ -27,7 +28,7 @@ $(async function () {
     const title = $("#title").val();
     const author = $("#author").val();
     const url = $("#url").val();
-    const hostName = getHostName(url);
+    const hostname = getHostName(url);
     const username = currentUser.username;
 
     const storyObject = await storyList.addStory(currentUser, {
@@ -46,7 +47,7 @@ $(async function () {
           <strong>${title}</strong>
         </a>
         <small class="article-author">by ${author}</small>
-        <small class="article-hostname ${hostName}">(${hostName})</small>
+        <small class="article-hostname ${hostname}">(${hostname})</small>
         <small class="article-username">posted by ${username}</small>
       </li>
     `);
@@ -73,6 +74,7 @@ $(async function () {
     currentUser = userInstance;
     syncCurrentUserToLocalStorage();
     loginAndSubmitForm();
+    generateUserProfile();
   });
 
   /**
@@ -122,7 +124,7 @@ $(async function () {
    */
 
   $body.on("click", "#nav-all", async function () {
-    // hideElements();
+    hideElements();
     await generateStories();
     $allStoriesList.show();
   });
@@ -131,8 +133,9 @@ $(async function () {
    * Event handler for click on username
    */
 
-  $body.on("click", "#nav-user-profile", function () {
-    $allStoriesList.hide();
+  $navUserProfile.on("click", function () {
+    hideElements();
+    generateUserProfile();
     $userProfile.show();
   });
 
@@ -141,7 +144,7 @@ $(async function () {
    */
 
   $body.on("click", "#nav-favorites", async function () {
-    $allStoriesList.hide();
+    hideElements();
     if (currentUser) {
       generateFavorites();
       $favoritedArticles.show();
@@ -165,7 +168,7 @@ $(async function () {
    */
 
   $body.on("click", "#nav-my-stories", function () {
-    $allStoriesList.hide();
+    hideElements();
     if (currentUser) {
       generateMyStories();
       $ownStories.show();
@@ -181,7 +184,7 @@ $(async function () {
       const $target = $(event.target);
       const $parentLi = $target.closest("li");
       const storyId = $parentLi.attr("id");
-      console.log($target);
+
       if ($target.hasClass("fas")) {
         // await currentUser.removeFavorite(storyId);
         $target.closest("i").toggleClass("fas far");
@@ -251,17 +254,24 @@ $(async function () {
 
   function generateMyStories() {
     $ownStories.empty();
-    console.log(currentUser);
-    if (currentUser.stories.length === 0) {
+    if (currentUser.ownStories.length === 0) {
       $ownStories.append("<h5>No articles submitted</h5>");
     } else {
-      for (let story of currentUser.stories) {
+      for (let story of currentUser.ownStories) {
         let storyHTML = generateStoryHTML(story);
         $ownStories.append(storyHTML);
       }
     }
   }
 
+  function generateUserProfile() {
+    $("#profile-name").text(`Name: ${currentUser.name}`);
+    $("#profile-username").text(`Username: ${currentUser.username}`);
+    $("#profile-account-date").text(
+      `Account Created: ${currentUser.createdAt}`
+    );
+    $navUserProfile.text(currentUser.username);
+  }
   /**
    * A rendering function to call the StoryList.getStories static method,
    *  which will generate a storyListInstance. Then render it.
@@ -301,7 +311,7 @@ $(async function () {
       <li id="${story.storyId}">
         ${trashIcon}
         <span class="star">
-          <i class="far fa-star"></i>
+          <i class="${starType} fa-star"></i>
         </span>
         <a class="article-link" href="${story.url}" target="a_blank">
           <strong>${story.title}</strong>
@@ -325,7 +335,8 @@ $(async function () {
       $ownStories,
       $loginForm,
       $createAccountForm,
-      // $userProfile,
+      $userProfile,
+      $favoritedArticles,
     ];
     elementsArr.forEach(($elem) => $elem.hide());
   }
@@ -334,7 +345,6 @@ $(async function () {
     $navLogin.hide();
     $userProfile.hide();
     $(".main-nav-links").removeClass("hidden");
-    $("#nav-user-profile").text(currentUser.username);
     $navWelcome.show();
     $navLogOut.show();
   }
