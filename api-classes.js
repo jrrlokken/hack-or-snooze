@@ -60,6 +60,23 @@ class StoryList {
     user.ownStories.unshift(newStory);
     return newStory;
   }
+
+  /**
+   * DELETE request method
+   */
+
+  async removeStory(user, storyId) {
+    await axios({
+      url: `${BASE_URL}/stories/${storyId}`,
+      method: "DELETE",
+      data: {
+        token: user.loginToken,
+      },
+    });
+
+    this.stories = this.stories.filter((story) => story.storyId !== storyId);
+    user.ownStories = user.ownStories.filter((s) => s.storyId !== storyId);
+  }
 }
 
 /**
@@ -170,8 +187,71 @@ class User {
     );
     return existingUser;
   }
-  static async removeFavorite(storyId) {}
-  static async addFavorite(storyId) {}
+
+  async getUserDetails() {
+    const response = await axios.get(`${BASE_URL}/users/${this.username}`, {
+      params: {
+        token: this.loginToken,
+      },
+    });
+    this.name = response.data.user.name;
+    this.createdAt = response.data.user.createdAt;
+    this.updatedAt = response.data.user.updatedAt;
+
+    this.favorites = response.data.user.favorites.map(
+      (story) => new Story(story)
+    );
+    this.ownStories = response.data.user.stories.map(
+      (story) => new Story(story)
+    );
+
+    return this;
+  }
+
+  async addFavorite(storyId) {
+    return this._toggleFavorite(storyId, "POST");
+  }
+
+  async removeFavorite(storyId) {
+    return this._toggleFavorite(storyId, "DELETE");
+  }
+
+  async _toggleFavorite(storyId, httpVerb) {
+    await axios({
+      url: `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
+      method: httpVerb,
+      data: {
+        token: this.loginToken,
+      },
+    });
+
+    await this.getUserDetails();
+    return this;
+  }
+
+  async update(userData) {
+    const response = await axios({
+      url: `${BASE_URL}/users/${this.username}`,
+      method: "PATCH",
+      data: {
+        user: userData,
+        token: this.loginToken,
+      },
+    });
+
+    this.name = response.data.user.name;
+    return this;
+  }
+
+  async remove() {
+    await axios({
+      url: `${BASE_URL}/users/${this.username}`,
+      method: "DELETE",
+      data: {
+        token: this.loginToken,
+      },
+    });
+  }
 }
 
 /**

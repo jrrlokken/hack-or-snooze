@@ -20,7 +20,7 @@ $(async function () {
 
   // global currentUser variable
   let currentUser = null;
-  // $userProfile.hide();
+  $userProfile.hide();
   await checkIfLoggedIn();
 
   $submitForm.on("submit", async function (event) {
@@ -135,7 +135,6 @@ $(async function () {
 
   $navUserProfile.on("click", function () {
     hideElements();
-    generateUserProfile();
     $userProfile.show();
   });
 
@@ -170,6 +169,7 @@ $(async function () {
   $body.on("click", "#nav-my-stories", function () {
     hideElements();
     if (currentUser) {
+      $userProfile.hide();
       generateMyStories();
       $ownStories.show();
     }
@@ -186,13 +186,27 @@ $(async function () {
       const storyId = $parentLi.attr("id");
 
       if ($target.hasClass("fas")) {
-        // await currentUser.removeFavorite(storyId);
+        await currentUser.removeFavorite(storyId);
         $target.closest("i").toggleClass("fas far");
       } else {
-        // await currentUser.addFavorite(storyId);
+        await currentUser.addFavorite(storyId);
         $target.closest("i").toggleClass("fas far");
       }
     }
+  });
+
+  /**
+   * Event handler for delete story
+   */
+
+  $ownStories.on("click", ".trash-can", async function (event) {
+    const $parentLi = $(event.target).closest("li");
+    const storyId = $parentLi.attr("id");
+
+    await storyList.removeStory(currentUser, storyId);
+    await generateStories();
+    hideElements();
+    $allStoriesList.show();
   });
 
   /**
@@ -212,6 +226,7 @@ $(async function () {
     await generateStories();
 
     if (currentUser) {
+      generateUserProfile();
       showNavForLoggedInUser();
     }
   }
@@ -234,6 +249,7 @@ $(async function () {
 
     // update the navigation bar
     showNavForLoggedInUser();
+    generateUserProfile();
   }
 
   /**
