@@ -274,7 +274,7 @@ $(async function () {
       $ownStories.append("<h5>No articles submitted</h5>");
     } else {
       for (let story of currentUser.ownStories) {
-        let storyHTML = generateStoryHTML(story);
+        let storyHTML = generateStoryHTML(story, true);
         $ownStories.append(storyHTML);
       }
     }
